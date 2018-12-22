@@ -13,6 +13,7 @@ public class Parser {
         if (!sc.hasNext())
             throw new Exception("BAD_QUERY");
         String mainCommand = sc.next();
+
         CommandType commandType;
         if ((commandType = CommandType.parse(mainCommand)) == null)
             throw new Exception("No command " + mainCommand + " found");

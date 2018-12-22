@@ -5,7 +5,8 @@ import java.util.Arrays;
 
 public enum CommandType {
     RECEIVE("name"),
-    SERVE("name", "path");
+    SERVE("ip", "name", "path"),
+    CONNECT("ip","port");
 
     private ArrayList<String> requiredFlags;
 
@@ -24,6 +25,8 @@ public enum CommandType {
                 return CommandType.RECEIVE;
             case "serve":
                 return CommandType.SERVE;
+            case "connect":
+                return  CommandType.CONNECT;
             default:
                 return null;
         }
