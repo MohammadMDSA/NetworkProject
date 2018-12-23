@@ -20,7 +20,7 @@ public abstract class Command {
             case RECEIVE:
                 return new ReceiveCommand(flags.get("name"));
             case CONNECT:
-                return  new ConnectCommand(flags.get("ip"), flags.get("port"));
+                return  new ConnectCommand(flags.get("ip"));
             default:
                 return null;
         }

@@ -11,7 +11,7 @@ public class Service extends Thread {
 
     DatagramSocket connecton;
 
-    Service(DatagramSocket socket){
+    public Service(DatagramSocket socket){
         connecton = socket;
     }
 
@@ -29,9 +29,10 @@ public class Service extends Thread {
                 int port = DP.getPort();
                 String cmd = new String(DP.getData(),0, DP.getLength());
                 if(cmd.substring(0,7).equals("sending")){
+                    String[] str = cmd.split(" ");
 
                     BufferedWriter bufferedWriter =
-                            new BufferedWriter(new FileWriter("../files/" + cmd.substring(8)));
+                            new BufferedWriter(new FileWriter(str[1] + "\\" + str[2]));
 
                     while (true){
                         connecton.receive(DP);
@@ -49,9 +50,18 @@ public class Service extends Thread {
                     File file = new File("../files/" + cmd);
                     DatagramPacket ans;
                     if(file.exists()){
-                        //must send file by divide in to 64000 bytes.
+                        FileInputStream fileInputStream = new FileInputStream(file);
+                        int x = fileInputStream.read(buf);
+                        while(x == 64000){
+                            ans = new DatagramPacket(buf, x, address, port);
+                            connecton.send(ans);
+                            x = fileInputStream.read(buf);
+                        }
+                        ans = new DatagramPacket(buf, x, address, port);
+                        connecton.send(ans);
+
                     } else{
-                        byte[] bytes = "No such file!".getBytes();
+                        byte[] bytes = "No such file!".getBytes(); // length: 13
                         ans = new DatagramPacket(bytes, bytes.length, address, port);
                         connecton.send(ans);
                     }

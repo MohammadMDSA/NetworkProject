@@ -20,4 +20,8 @@ public class ServeCommand extends Command {
     public String getName() {
         return name;
     }
+
+    public String getIp() {
+        return ip;
+    }
 }
