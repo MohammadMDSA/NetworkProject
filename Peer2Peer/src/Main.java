@@ -19,6 +19,8 @@ public class Main {
 //            Command x = cli.read();
 //            System.out.println(x.getType());
 //        }
-        new Peer();
+//        new Peer();
+//        new Peer();
+//        new Peer();
     }
 }

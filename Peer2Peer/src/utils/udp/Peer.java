@@ -35,7 +35,9 @@ public class Peer {
 
                 String ip = ((ServeCommand) cmd).getIp();
 
-
+                byte[] send = ("sending " + ((ServeCommand) cmd).getPath() +((ServeCommand) cmd).getName()).getBytes();
+                DatagramPacket pack = new DatagramPacket(send, send.length, InetAddress.getByName(ip), 55555);
+                socket.send(pack);
                 byte[] buffer = new byte[64000];
                 FileInputStream fileInputStream = new FileInputStream(new File("../files/" + ((ServeCommand) cmd).getName()));
                 int x = fileInputStream.read(buffer);
@@ -47,6 +49,9 @@ public class Peer {
                 }
                 packet = new DatagramPacket(buffer, x, InetAddress.getByName(ip), 55555);
                 socket.send(packet);
+
+                byte[] end = "end!".getBytes();
+                DatagramPacket endpacket = new DatagramPacket(end, end.length, InetAddress.getByName(ip), 55555);
 
                 // send to specific IP
 
@@ -94,6 +99,11 @@ public class Peer {
             }
 
         }
+    }
+
+
+    public static void main(String[] args) {
+
     }
 
 
