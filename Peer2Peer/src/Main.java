@@ -14,10 +14,11 @@ public class Main {
        // System.out.println("No such file!".length());
        // new Peer();
         
-        Cli cli = new Cli();
-        while(true) {
-            Command x = cli.read();
-            System.out.println(x.getType());
-        }
+//        Cli cli = new Cli();
+//        while(true) {
+//            Command x = cli.read();
+//            System.out.println(x.getType());
+//        }
+        new Peer();
     }
 }

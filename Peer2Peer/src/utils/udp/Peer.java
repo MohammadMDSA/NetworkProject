@@ -2,29 +2,24 @@ package utils.udp;
 
 import utils.cli.Cli;
 import utils.cli.command.Command;
-import utils.cli.command.ConnectCommand;
 import utils.cli.command.ReceiveCommand;
 import utils.cli.command.ServeCommand;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
-import java.util.Vector;
 
 public class Peer {
 
+
+    private static int portNumber = 55555;
     private InetAddress address = InetAddress.getLocalHost();
     private DatagramSocket socket = new DatagramSocket();
-    private Vector<String> ips = new Vector<>();
     private Thread thread;
-
 
 
     public Peer() throws IOException {
 
-        DatagramSocket serverSocket = new DatagramSocket(55555);
+        DatagramSocket serverSocket = new DatagramSocket(portNumber);
         thread = new Service(serverSocket);
         thread.start();
         clientService();
@@ -33,47 +28,69 @@ public class Peer {
 
     public void clientService() throws IOException {
         Cli commander = new Cli();
-        while (true){
+        while (true) {
             Command cmd = commander.read();
 
-            if(cmd instanceof ServeCommand){
+            if (cmd instanceof ServeCommand) {
 
-                int index = -1;
                 String ip = ((ServeCommand) cmd).getIp();
-                for (int i = 0; i < ips.size(); i++) {
-                    if(ips.get(i).equals(ip)){
-                        index = i;
-                        break;
-                    }
-                }
 
-                if(index == -1){
-                    ips.add(ip);
 
-                    index = ips.size() - 1;
-                }
-
-                byte[] buf = new byte[64000];
+                byte[] buffer = new byte[64000];
                 FileInputStream fileInputStream = new FileInputStream(new File("../files/" + ((ServeCommand) cmd).getName()));
-                int x = fileInputStream.read(buf);
+                int x = fileInputStream.read(buffer);
                 DatagramPacket packet;
-                while(x == 64000){
-                    packet = new DatagramPacket(buf, x, InetAddress.getByName(ips.get(index)), 55555);
+                while (x == 64000) {
+                    packet = new DatagramPacket(buffer, x, InetAddress.getByName(ip), 55555);
                     socket.send(packet);
-                    x = fileInputStream.read(buf);
+                    x = fileInputStream.read(buffer);
                 }
-                packet = new DatagramPacket(buf, x, InetAddress.getByName(ips.get(index)), 55555);
+                packet = new DatagramPacket(buffer, x, InetAddress.getByName(ip), 55555);
                 socket.send(packet);
 
                 // send to specific IP
 
-            } else if(cmd instanceof ReceiveCommand){
+            } else if (cmd instanceof ReceiveCommand) {
 
-                //Broadcast and get answer from first interface contains file
+                //Broadcast Message
+                InetAddress broadcast = InetAddress.getByName("255.255.255.255");
+                String fileName = ((ReceiveCommand) cmd).getName();
+                byte[] name = fileName.getBytes();
+                DatagramPacket packet = new DatagramPacket(name, 0, name.length, broadcast, 55555);
+                socket.send(packet);
 
-            }else if(cmd instanceof ConnectCommand){
-                String ip = ((ConnectCommand) cmd).getIp();
-                ips.add(ip);
+                boolean found = false;
+                InetAddress address = null;
+                byte[] ans = new byte[3];
+                DatagramPacket temp = new DatagramPacket(ans, ans.length);
+
+                while (!found) {
+                    socket.receive(temp);
+                    String str = new String(ans);
+                    if (str.equals("OK!")) {
+                        found = true;
+                        address = temp.getAddress();
+                    }
+                }
+
+                BufferedWriter writer = new BufferedWriter(new FileWriter("../files/" + fileName));
+                byte[] buffer = new byte[64000];
+                DatagramPacket DP = new DatagramPacket(buffer, buffer.length);
+                while (true) {
+                    socket.receive(DP);
+                    if (!DP.getAddress().getHostName().equals(address.getHostName()) && DP.getData().toString().equals("OK!")) {
+                        byte[] rej = "NOK".getBytes();
+                        DatagramPacket reject = new DatagramPacket(rej, rej.length, DP.getAddress(), DP.getPort());
+                    } else if (buffer.toString().equals("end!")) {
+                        break;
+                    } else if (DP.getData().toString().equals("NOK")) {
+
+                    } else {
+                        writer.write(buffer.toString());
+                        writer.flush();
+                    }
+                }
+
             }
 
         }
@@ -86,10 +103,6 @@ public class Peer {
 
     public DatagramSocket getSocket() {
         return socket;
-    }
-
-    public Vector<String> getIps() {
-        return ips;
     }
 
     public Thread getThread() {

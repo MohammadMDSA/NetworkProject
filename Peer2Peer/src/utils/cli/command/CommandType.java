@@ -25,8 +25,6 @@ public enum CommandType {
                 return CommandType.RECEIVE;
             case "serve":
                 return CommandType.SERVE;
-            case "connect":
-                return  CommandType.CONNECT;
             default:
                 return null;
         }
