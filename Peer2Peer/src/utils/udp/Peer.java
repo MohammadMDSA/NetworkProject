@@ -102,8 +102,8 @@ public class Peer {
     }
 
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws IOException {
+        new Peer();
     }
 
 
