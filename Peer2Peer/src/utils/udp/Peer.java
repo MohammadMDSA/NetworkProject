@@ -28,6 +28,7 @@ public class Peer {
 
     public void clientService() throws IOException {
         Cli commander = new Cli();
+        File file = new File( new File("").getAbsolutePath() + "/Peer2Peer/src/utils/files");
         while (true) {
             Command cmd = commander.read();
 
@@ -39,7 +40,13 @@ public class Peer {
                 DatagramPacket pack = new DatagramPacket(send, send.length, InetAddress.getByName(ip), 55555);
                 socket.send(pack);
                 byte[] buffer = new byte[64000];
-                FileInputStream fileInputStream = new FileInputStream(new File("../files/" + ((ServeCommand) cmd).getName()));
+                File t = new File(file.getAbsolutePath() + "/" + ((ServeCommand) cmd).getName());
+                if(!t.exists()){
+                    System.out.println("No such File Available!");
+                    continue;
+                }
+                FileInputStream fileInputStream = new FileInputStream(t);
+
                 int x = fileInputStream.read(buffer);
                 DatagramPacket packet;
                 while (x == 64000) {
@@ -53,7 +60,7 @@ public class Peer {
                 byte[] end = "end!".getBytes();
                 DatagramPacket endpacket = new DatagramPacket(end, end.length, InetAddress.getByName(ip), 55555);
 
-                // send to specific IP
+                fileInputStream.close();
 
             } else if (cmd instanceof ReceiveCommand) {
 
@@ -61,7 +68,7 @@ public class Peer {
                 InetAddress broadcast = InetAddress.getByName("255.255.255.255");
                 String fileName = ((ReceiveCommand) cmd).getName();
                 byte[] name = fileName.getBytes();
-                DatagramPacket packet = new DatagramPacket(name, 0, name.length, broadcast, 55555);
+                DatagramPacket packet = new DatagramPacket(name, name.length, broadcast, 55555);
                 socket.send(packet);
 
                 boolean found = false;
@@ -71,28 +78,39 @@ public class Peer {
 
                 while (!found) {
                     socket.receive(temp);
+                    System.out.println("GOT " + new String(ans));
+                    System.out.println(temp.getAddress().getHostName());
                     String str = new String(ans);
                     if (str.equals("OK!")) {
                         found = true;
                         address = temp.getAddress();
+                        ans = "OK!".getBytes();
+                        temp = new DatagramPacket(ans, ans.length, address, 55555);
+                        socket.send(temp);
                     }
                 }
 
-                BufferedWriter writer = new BufferedWriter(new FileWriter("../files/" + fileName));
+                BufferedWriter writer = new BufferedWriter(new FileWriter(file + "/" + fileName));
                 byte[] buffer = new byte[64000];
                 DatagramPacket DP = new DatagramPacket(buffer, buffer.length);
                 while (true) {
                     socket.receive(DP);
+                    System.out.println(DP.getAddress().getHostName());
+                    System.out.println(DP.getPort());
                     if (!DP.getAddress().getHostName().equals(address.getHostName()) && DP.getData().toString().equals("OK!")) {
                         byte[] rej = "NOK".getBytes();
                         DatagramPacket reject = new DatagramPacket(rej, rej.length, DP.getAddress(), DP.getPort());
+                        socket.send(reject);
                     } else if (buffer.toString().equals("end!")) {
+                        writer.close();
                         break;
                     } else if (DP.getData().toString().equals("NOK")) {
 
                     } else {
-                        writer.write(buffer.toString());
+                        writer.write(DP.getData().toString());
                         writer.flush();
+                        System.out.println("wrote!");
+                        System.out.println(DP.getData().toString());
                     }
                 }
 

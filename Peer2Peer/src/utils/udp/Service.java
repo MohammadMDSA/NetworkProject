@@ -19,6 +19,8 @@ public class Service extends Thread {
     @Override
     public void run() {
         while(true){
+            System.out.println("Enter");
+
         byte[] buf = new byte[64000];
         DatagramPacket DP = new DatagramPacket(buf,buf.length);
             try {
@@ -31,13 +33,15 @@ public class Service extends Thread {
                     String[] str = cmd.split(" ");
 
                     BufferedWriter bufferedWriter =
-                            new BufferedWriter(new FileWriter(str[1] + "\\" + str[2]));
+                            new BufferedWriter(new FileWriter(str[1] + "/" + str[2]));
 
                     while (true){
                         connecton.receive(DP);
                         cmd = new String(DP.getData(),0,4);
-                        if(cmd.equals("end!"))
+                        if(cmd.equals("end!")) {
+                            bufferedWriter.close();
                             break;
+                        }
                         else {
                             bufferedWriter.write(new String(DP.getData()));
                             bufferedWriter.flush();
@@ -46,11 +50,12 @@ public class Service extends Thread {
 
 
                 } else{
-                    File file = new File("../files/" + cmd);
+                    File file = new File(new File("").getAbsolutePath() + "/Peer2Peer/src/utils/files/"+ cmd);
+                    System.out.println(file.exists());
                     DatagramPacket ans;
                     if(file.exists()){
                         byte[] found = "OK!".getBytes();
-                        ans = new DatagramPacket(found, 0, found.length, connecton.getInetAddress(), connecton.getPort());
+                        ans = new DatagramPacket(found, found.length, address, port);
                         connecton.send(ans);
 
                         byte[] buff = new byte[3];
@@ -68,12 +73,19 @@ public class Service extends Thread {
                             connecton.send(ans);
                             x = fileInputStream.read(buf);
                         }
-                        ans = new DatagramPacket(buf, x, address, port);
+
+                        int counter = 6400;
+                        while(buf[counter] == 0) {
+                            counter--;
+
+                        }
+                        ans = new DatagramPacket(buf, counter, address, port);
                         connecton.send(ans);
 
                         byte[] end = "end!".getBytes();
                         ans = new DatagramPacket(end, end.length, address, port);
                         connecton.send(ans);
+                        fileInputStream.close();
 
                     } else{
                         byte[] bytes = "NOK".getBytes();
