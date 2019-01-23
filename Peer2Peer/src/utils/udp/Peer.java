@@ -10,7 +10,6 @@ import java.net.*;
 
 public class Peer {
 
-
     private static int portNumber = 55555;
     private InetAddress address = InetAddress.getLocalHost();
     private DatagramSocket socket = new DatagramSocket();
