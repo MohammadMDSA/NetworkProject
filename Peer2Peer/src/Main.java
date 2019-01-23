@@ -1,19 +1,15 @@
 import utils.cli.Cli;
-import utils.cli.command.Command;
 import utils.udp.Peer;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        
         Cli cli = new Cli();
 
         new Peer();
