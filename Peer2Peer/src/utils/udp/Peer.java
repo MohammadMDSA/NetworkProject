@@ -30,7 +30,7 @@ public class Peer {
         Cli commander = new Cli();
         File file = new File( new File("").getAbsolutePath() + "/Peer2Peer/src/utils/files");
         if(!file.exists())
-            file.createNewFile();
+            file.mkdir();
         while (true) {
             Command cmd = commander.read();
 
@@ -99,20 +99,20 @@ public class Peer {
                     socket.receive(DP);
                     System.out.println(DP.getAddress().getHostName());
                     System.out.println(DP.getPort());
-                    if (!DP.getAddress().getHostName().equals(address.getHostName()) && new String(DP.getData()).equals("OK!")) {
+                    if (!DP.getAddress().getHostName().equals(address.getHostName()) && new String(DP.getData(),0,DP.getLength()).equals("OK!")) {
                         byte[] rej = "NOK".getBytes();
                         DatagramPacket reject = new DatagramPacket(rej, rej.length, DP.getAddress(), DP.getPort());
                         socket.send(reject);
-                    } else if (new String(buffer).equals("end!")) {
+                    } else if (new String(DP.getData(),0,DP.getLength()).equals("end!")) {
                         writer.close();
                         break;
-                    } else if (new String(DP.getData()).equals("NOK")) {
+                    } else if (new String(DP.getData(),0,DP.getLength()).equals("NOK")) {
 
                     } else {
-                        writer.write(new String(DP.getData()));
+                        writer.write(new String(DP.getData(),0,DP.getLength()));
                         writer.flush();
                         System.out.println("wrote!");
-                        System.out.println(new String(DP.getData()));
+                        System.out.println(new String(DP.getData(),0,DP.getLength()));
                     }
                 }
 
